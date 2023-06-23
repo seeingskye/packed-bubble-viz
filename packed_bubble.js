@@ -139,23 +139,21 @@ const visObject = {
 
         const measureOptions = measures.map((measure) => Object.fromEntries([[`${fields[measure].label_short}`, `${measure}`]]));
 
-        const options = {
-          color_measure: {
-            order: 2,
-            label: 'Color Measure',
-            type: 'string',
-            display: 'select',
-            default: measures[0],
-            values: measureOptions
-          },
-          size_measure: {
-            order: 3,
-            label: 'Size Measure',
-            type: 'string',
-            display: 'select',
-            default: measures[1],
-            values: measureOptions
-          }
+        this.options.color_measure = {
+          order: 2,
+          label: 'Color Measure',
+          type: 'string',
+          display: 'select',
+          default: measures[0],
+          values: measureOptions
+        }
+        this.options.size_measure = {
+          order: 3,
+          label: 'Size Measure',
+          type: 'string',
+          display: 'select',
+          default: measures[1],
+          values: measureOptions
         }
         
         this.trigger('registerOptions', options)
@@ -329,11 +327,13 @@ const visObject = {
           .attr('stroke', "black")
           .attr('stroke-width', 2)
         
+        const colorMeasureFormat = fields[color_measure].value_format;
+        
         for (let i = 0; i < 5; i++) {
           const pipValue = color_measure_min + ((color_measure_range / 4) * i);
 
           colorLegend.append("text")
-          .text(pipValue)
+          .text(colorMeasureFormat ? d3.format(colorMeasureFormat)(pipValue) : pipValue) 
           .attr('x', -3 - legend_bar_width/2)
           .attr('y', legend_bar_height - ((legend_bar_height / 4) * i))
           .style('text-anchor', "end")
