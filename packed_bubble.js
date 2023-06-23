@@ -91,9 +91,10 @@ const visObject = {
             label: 'Color Measure',
             type: 'string',
             display: 'select',
-            default: "",
+            default: "test",
             values: [
-              {"": ""}
+              {"test": "test"},
+              {"test2": "test2"}
             ]
         },
         size_measure: {
@@ -101,9 +102,10 @@ const visObject = {
             label: 'Size Measure',
             type: 'string',
             display: 'select',
-            default: "",
+            default: "test",
             values: [
-              {"": ""}
+              {"test": "test"},
+              {"test2": "test2"}
             ]
         }
      },
@@ -121,7 +123,6 @@ const visObject = {
      * the data and should update the visualization with the new data.
      **/
       updateAsync: function(data, element, config, queryResponse, details, doneRendering){
-        console.log(config, details)
         
         this.clearErrors();
         if (!handleErrors(this, queryResponse, {
@@ -133,19 +134,33 @@ const visObject = {
         const fields = formatFields(queryResponse);
     
         // ****************** CONFIGS ***************************
-        // const newOptions = Object();
-        // queryResponse.fields.measure_like.forEach(function(field) {
-        //   id = "color_" + field.name
-        //   newOptions[id] =
-        //   {
-        //     label: field.label_short + " Color",
-        //     default: "#8B7DA8",
-        //     section: "Style",
-        //     type: "string",
-        //     display: "color"
-        //   }
-        // })
-        // this.trigger('registerOptions', newOptions)
+        const dimension_name = queryResponse.fields.dimension_like[0].name;
+        const measures = queryResponse.fields.measure_like.map(measure => measure.name);
+
+        const measureOptions = measures.map((measure) => Object.fromEntries([`${fields[measure].label_short}`, `${measure}`]));
+        const size_measure = measures[0];
+        const color_measure = measures[1];
+
+        const newOptions = {
+          color_measure: {
+            order: 2,
+            label: 'Color Measure',
+            type: 'string',
+            display: 'select',
+            default: color_measure,
+            values: measureOptions
+          },
+          size_measure: {
+            order: 3,
+            label: 'Size Measure',
+            type: 'string',
+            display: 'select',
+            default: size_measure,
+            values: measureOptions
+          }
+        }
+        
+        this.trigger('registerOptions', newOptions)
 
         const getConfigValue = (configName) => {
           const value = (config && config[configName] != undefined) ? config[configName] : this.options[configName]['default'];
@@ -196,7 +211,7 @@ const visObject = {
           // .style('stroke-width', 1)
           .style('opacity', .97)
 
-        const mouseOverTooltip = function(d) {
+        const mouseOverTooltip = function(event, d) {
           d3.select(this).select('circle')
             .style('filter', "drop-shadow(-2px 2px 0.2rem grey)")
           
@@ -216,8 +231,8 @@ const visObject = {
 
         }
 
-        const mouseMoveTooltip = () => {
-          let {clientX, clientY} = d3.event;
+        const mouseMoveTooltip = (event) => {
+          let {clientX, clientY} = event;
           const ctm = svg.node().getScreenCTM().inverse();
         
           clientX = (clientX + ctm.e) * ctm.a;
@@ -235,12 +250,6 @@ const visObject = {
         }
      
         // ****************** nodes section ***************************
-        const dimension_name = queryResponse.fields.dimension_like[0].name;
-        const measures = queryResponse.fields.measure_like.map(measure => measure.name);
-
-        const size_measure = measures[0];
-        const color_measure = measures[1];
-
         const color_measure_values = data.map(row => row[color_measure].value);
         const color_measure_min = Math.min(...color_measure_values);
         const color_measure_max = Math.max(...color_measure_values);
