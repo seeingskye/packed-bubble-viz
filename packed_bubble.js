@@ -1,34 +1,34 @@
 const handleErrors = (vis, res, options) => {
-    // TODO: Validate measure types & allow for either multi dimension or multi measure
-  
-    const check = (group, noun, count, min, max) => {
-      if (!vis.addError || !vis.clearErrors) return false
-      if (count < min) {
-        vis.addError({
-          title: `Not Enough ${noun}s`,
-          message: `This visualization requires ${min === max ? 'exactly' : 'at least'} ${min} ${noun.toLowerCase()}${ min === 1 ? '' : 's' }.`,
-          group
-        })
-        return false
-      }
-      if (count > max) {
-        vis.addError({
-          title: `Too Many ${noun}s`,
-          message: `This visualization requires ${min === max ? 'exactly' : 'no more than'} ${max} ${noun.toLowerCase()}${ min === 1 ? '' : 's' }.`,
-          group
-        })
-        return false
-      }
-      vis.clearErrors(group)
-      return true
+  // TODO: Validate measure types & allow for either multi dimension or multi measure
+
+  const check = (group, noun, count, min, max) => {
+    if (!vis.addError || !vis.clearErrors) return false
+    if (count < min) {
+      vis.addError({
+        title: `Not Enough ${noun}s`,
+        message: `This visualization requires ${min === max ? 'exactly' : 'at least'} ${min} ${noun.toLowerCase()}${ min === 1 ? '' : 's' }.`,
+        group
+      })
+      return false
     }
-  
-    const { pivots, dimensions, measure_like: measures } = res.fields
-  
-    return (check('pivot-req', 'Pivot', pivots.length, options.min_pivots, options.max_pivots)
-     && check('dim-req', 'Dimension', dimensions.length, options.min_dimensions, options.max_dimensions)
-     && check('mes-req', 'Measure', measures.length, options.min_measures, options.max_measures))
+    if (count > max) {
+      vis.addError({
+        title: `Too Many ${noun}s`,
+        message: `This visualization requires ${min === max ? 'exactly' : 'no more than'} ${max} ${noun.toLowerCase()}${ min === 1 ? '' : 's' }.`,
+        group
+      })
+      return false
+    }
+    vis.clearErrors(group)
+    return true
   }
+
+  const { pivots, dimensions, measure_like: measures } = res.fields
+
+  return (check('pivot-req', 'Pivot', pivots.length, options.min_pivots, options.max_pivots)
+    && check('dim-req', 'Dimension', dimensions.length, options.min_dimensions, options.max_dimensions)
+    && check('mes-req', 'Measure', measures.length, options.min_measures, options.max_measures))
+}
 
 function formatType(valueFormat) {
   if (typeof valueFormat != "string") {
@@ -106,12 +106,12 @@ const visObject = {
      * Configuration options
      **/
      options: {
-        bubble_colors: {
+        bubble_color: {
             order: 1,
             label: 'Bubble Gradient',
             type: 'array',
-            display: 'colors',
-            default: ["#D82C59", "#963CBD", "#100695", "#00C1D5"]
+            display: 'color',
+            default: ["#963CBD"]
         },
         color_measure: {
             order: 2,
@@ -150,6 +150,7 @@ const visObject = {
      * the data and should update the visualization with the new data.
      **/
       updateAsync: function(data, element, config, queryResponse, details, doneRendering){
+        console.log(data, queryResponse)
         
         this.clearErrors();
         if (!handleErrors(this, queryResponse, {
@@ -171,7 +172,7 @@ const visObject = {
           label: 'Color Measure',
           type: 'string',
           display: 'select',
-          default: measures[1],
+          default: measures[0],
           values: measureOptions
         }
         this.options.size_measure = {
@@ -179,10 +180,9 @@ const visObject = {
           label: 'Size Measure',
           type: 'string',
           display: 'select',
-          default: measures[0],
+          default: measures[1],
           values: measureOptions
         }
-        console.log(this.options)
         
         this.trigger('registerOptions', this.options)
 
@@ -190,8 +190,11 @@ const visObject = {
           const value = (config && config[configName] != undefined) ? config[configName] : this.options[configName]['default'];
           return value
         }
-        const configColors = getConfigValue('bubble_colors');
-        const bubbleColor = d3.interpolateRgbBasis(configColors);
+        const configColor = getConfigValue('bubble_color');
+        const lightColor = d3.hcl(d3.rgb(configColor));
+        lightColor.l = .95;
+        const configColors = [configColor, lightColor]
+        const bubbleColors = d3.interpolateRgbBasis(configColors);
         const size_measure = getConfigValue('size_measure');
         const color_measure = getConfigValue('color_measure');
 
@@ -213,7 +216,7 @@ const visObject = {
           .attr('gradientTransform', "rotate(90)")
 
           const colorCount = configColors.length - 1;
-          getConfigValue('bubble_colors').reverse().forEach((color, i) => {
+          configColors.reverse().forEach((color, i) => {
             vizGradient.append('stop')
               .attr('offset', `${100 * (i / colorCount)}%`)
               .attr('stop-color', `${color}`)
@@ -283,9 +286,9 @@ const visObject = {
 
         data.forEach((row) => {
             if (color_measure_range === 0) {  // If all values are the same
-                row.color = bubbleColor(.5)
+                row.color = bubbleColors(.5)
             } else {
-                row.color = bubbleColor((row[color_measure].value - color_measure_min) / color_measure_range)
+                row.color = bubbleColors((row[color_measure].value - color_measure_min) / color_measure_range)
             }
         })
 
