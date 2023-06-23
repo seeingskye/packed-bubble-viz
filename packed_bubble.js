@@ -1,35 +1,63 @@
-const handleErrors = (vis, res, options) => {
-    // TODO: Validate measure types & allow for either multi dimension or multi measure
+// const handleErrors = (vis, res, options) => {
+//     // TODO: Validate measure types & allow for either multi dimension or multi measure
   
-    const check = (group, noun, count, min, max) => {
-      if (!vis.addError || !vis.clearErrors) return false
-      if (count < min) {
-        vis.addError({
-          title: `Not Enough ${noun}s`,
-          message: `This visualization requires ${min === max ? 'exactly' : 'at least'} ${min} ${noun.toLowerCase()}${ min === 1 ? '' : 's' }.`,
-          group
-        })
-        return false
-      }
-      if (count > max) {
-        vis.addError({
-          title: `Too Many ${noun}s`,
-          message: `This visualization requires ${min === max ? 'exactly' : 'no more than'} ${max} ${noun.toLowerCase()}${ min === 1 ? '' : 's' }.`,
-          group
-        })
-        return false
-      }
-      vis.clearErrors(group)
-      return true
-    }
+//     const check = (group, noun, count, min, max) => {
+//       if (!vis.addError || !vis.clearErrors) return false
+//       if (count < min) {
+//         vis.addError({
+//           title: `Not Enough ${noun}s`,
+//           message: `This visualization requires ${min === max ? 'exactly' : 'at least'} ${min} ${noun.toLowerCase()}${ min === 1 ? '' : 's' }.`,
+//           group
+//         })
+//         return false
+//       }
+//       if (count > max) {
+//         vis.addError({
+//           title: `Too Many ${noun}s`,
+//           message: `This visualization requires ${min === max ? 'exactly' : 'no more than'} ${max} ${noun.toLowerCase()}${ min === 1 ? '' : 's' }.`,
+//           group
+//         })
+//         return false
+//       }
+//       vis.clearErrors(group)
+//       return true
+//     }
   
-    const { pivots, dimensions, measure_like: measures } = res.fields
+//     const { pivots, dimensions, measure_like: measures } = res.fields
   
-    return (check('pivot-req', 'Pivot', pivots.length, options.min_pivots, options.max_pivots)
-     && check('dim-req', 'Dimension', dimensions.length, options.min_dimensions, options.max_dimensions)
-     && check('mes-req', 'Measure', measures.length, options.min_measures, options.max_measures))
-  }
+//     return (check('pivot-req', 'Pivot', pivots.length, options.min_pivots, options.max_pivots)
+//      && check('dim-req', 'Dimension', dimensions.length, options.min_dimensions, options.max_dimensions)
+//      && check('mes-req', 'Measure', measures.length, options.min_measures, options.max_measures))
+//   }
 
+function formatType(valueFormat) {
+  if (typeof valueFormat != "string") {
+    return function (x) {return x}
+  }
+  let format = ""
+  switch (valueFormat.charAt(0)) {
+    case '$':
+      format += '$'; break
+    case '£':
+      format += '£'; break
+    case '€':
+      format += '€'; break
+  }
+  if (valueFormat.indexOf(',') > -1) {
+    format += ','
+  }
+  splitValueFormat = valueFormat.split(".")
+  format += '.'
+  format += splitValueFormat.length > 1 ? splitValueFormat[1].length : 0
+
+  switch(valueFormat.slice(-1)) {
+    case '%':
+      format += '%'; break
+    case '0':
+      format += 'f'; break
+  }
+  return d3.format(format)
+}
         
 const addTextBox = (selection, width, text, textAlign = "left", verticalAlign = "top") => {
   // Set initial max bounding width for foreignObject
@@ -156,7 +184,7 @@ const visObject = {
           values: measureOptions
         }
         
-        this.trigger('registerOptions', options)
+        this.trigger('registerOptions', this.options)
 
         const getConfigValue = (configName) => {
           const value = (config && config[configName] != undefined) ? config[configName] : this.options[configName]['default'];
@@ -327,7 +355,7 @@ const visObject = {
           .attr('stroke', "black")
           .attr('stroke-width', 2)
         
-        const colorMeasureFormat = fields[color_measure].value_format;
+        const colorMeasureFormat = formatType(fields[color_measure].value_format);
         
         for (let i = 0; i < 5; i++) {
           const pipValue = color_measure_min + ((color_measure_range / 4) * i);
