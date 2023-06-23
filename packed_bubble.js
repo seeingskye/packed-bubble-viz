@@ -138,16 +138,14 @@ const visObject = {
         const measures = queryResponse.fields.measure_like.map(measure => measure.name);
 
         const measureOptions = measures.map((measure) => Object.fromEntries([[`${fields[measure].label_short}`, `${measure}`]]));
-        const size_measure = measures[0];
-        const color_measure = measures[1];
 
-        const newOptions = {
+        const options = {
           color_measure: {
             order: 2,
             label: 'Color Measure',
             type: 'string',
             display: 'select',
-            default: color_measure,
+            default: measures[0],
             values: measureOptions
           },
           size_measure: {
@@ -155,12 +153,12 @@ const visObject = {
             label: 'Size Measure',
             type: 'string',
             display: 'select',
-            default: size_measure,
+            default: measures[1],
             values: measureOptions
           }
         }
         
-        this.trigger('registerOptions', newOptions)
+        this.trigger('registerOptions', options)
 
         const getConfigValue = (configName) => {
           const value = (config && config[configName] != undefined) ? config[configName] : this.options[configName]['default'];
@@ -168,6 +166,8 @@ const visObject = {
         }
         const configColors = getConfigValue('bubble_colors');
         const bubbleColor = d3.interpolateRgbBasis(configColors);
+        const size_measure = getConfigValue('size_measure');
+        const color_measure = getConfigValue('color_measure');
 
         // SVG
         const margin = { y: 10, x: 10};
