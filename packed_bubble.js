@@ -107,7 +107,6 @@ const visObject = {
      **/
      options: {
         bubble_colors: {
-            section: 'Gauge',
             order: 1,
             label: 'Bubble Gradient',
             type: 'array',
@@ -183,6 +182,7 @@ const visObject = {
           default: measures[1],
           values: measureOptions
         }
+        console.log(this.options)
         
         this.trigger('registerOptions', this.options)
 
