@@ -218,7 +218,8 @@ const visObject = {
         }
         const configColor = getConfigValue('bubble_color');
         const lightColor = d3.hcl(d3.rgb(configColor));
-        lightColor.l = 100;
+        lightColor.l = 90;
+        lightColor.c = 5;
         const configColors = [configColor, lightColor]
         const bubbleColors = d3.interpolateRgbBasis(configColors);
         const size_measure = getConfigValue('size_measure');
