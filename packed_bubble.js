@@ -1,34 +1,34 @@
-// const handleErrors = (vis, res, options) => {
-//     // TODO: Validate measure types & allow for either multi dimension or multi measure
+const handleErrors = (vis, res, options) => {
+    // TODO: Validate measure types & allow for either multi dimension or multi measure
   
-//     const check = (group, noun, count, min, max) => {
-//       if (!vis.addError || !vis.clearErrors) return false
-//       if (count < min) {
-//         vis.addError({
-//           title: `Not Enough ${noun}s`,
-//           message: `This visualization requires ${min === max ? 'exactly' : 'at least'} ${min} ${noun.toLowerCase()}${ min === 1 ? '' : 's' }.`,
-//           group
-//         })
-//         return false
-//       }
-//       if (count > max) {
-//         vis.addError({
-//           title: `Too Many ${noun}s`,
-//           message: `This visualization requires ${min === max ? 'exactly' : 'no more than'} ${max} ${noun.toLowerCase()}${ min === 1 ? '' : 's' }.`,
-//           group
-//         })
-//         return false
-//       }
-//       vis.clearErrors(group)
-//       return true
-//     }
+    const check = (group, noun, count, min, max) => {
+      if (!vis.addError || !vis.clearErrors) return false
+      if (count < min) {
+        vis.addError({
+          title: `Not Enough ${noun}s`,
+          message: `This visualization requires ${min === max ? 'exactly' : 'at least'} ${min} ${noun.toLowerCase()}${ min === 1 ? '' : 's' }.`,
+          group
+        })
+        return false
+      }
+      if (count > max) {
+        vis.addError({
+          title: `Too Many ${noun}s`,
+          message: `This visualization requires ${min === max ? 'exactly' : 'no more than'} ${max} ${noun.toLowerCase()}${ min === 1 ? '' : 's' }.`,
+          group
+        })
+        return false
+      }
+      vis.clearErrors(group)
+      return true
+    }
   
-//     const { pivots, dimensions, measure_like: measures } = res.fields
+    const { pivots, dimensions, measure_like: measures } = res.fields
   
-//     return (check('pivot-req', 'Pivot', pivots.length, options.min_pivots, options.max_pivots)
-//      && check('dim-req', 'Dimension', dimensions.length, options.min_dimensions, options.max_dimensions)
-//      && check('mes-req', 'Measure', measures.length, options.min_measures, options.max_measures))
-//   }
+    return (check('pivot-req', 'Pivot', pivots.length, options.min_pivots, options.max_pivots)
+     && check('dim-req', 'Dimension', dimensions.length, options.min_dimensions, options.max_dimensions)
+     && check('mes-req', 'Measure', measures.length, options.min_measures, options.max_measures))
+  }
 
         
 const addTextBox = (selection, width, text, textAlign = "left", verticalAlign = "top") => {
