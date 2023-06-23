@@ -137,7 +137,7 @@ const visObject = {
         const dimension_name = queryResponse.fields.dimension_like[0].name;
         const measures = queryResponse.fields.measure_like.map(measure => measure.name);
 
-        const measureOptions = measures.map((measure) => Object.fromEntries([`${fields[measure].label_short}`, `${measure}`]));
+        const measureOptions = measures.map((measure) => Object.fromEntries([[`${fields[measure].label_short}`, `${measure}`]]));
         const size_measure = measures[0];
         const color_measure = measures[1];
 
