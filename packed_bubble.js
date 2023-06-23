@@ -48,14 +48,14 @@ function formatType(valueFormat) {
   }
   splitValueFormat = valueFormat.split(".")
   format += '.'
-  format += splitValueFormat.length > 1 ? splitValueFormat[1].length : 0
-
-  switch(valueFormat.slice(-1)) {
-    case '%':
-      format += '%'; break
-    case '0':
-      format += 'f'; break
+  if (splitValueFormat.at(-1).at(-1) == "%") {
+    format += splitValueFormat.at(-1).length - 1;
+    format += '%';
+  } else {
+    format += splitValueFormat.at(-1).length;
+    format += 'f';
   }
+  
   return d3.format(format)
 }
         
@@ -84,6 +84,9 @@ const addTextBox = (selection, width, text, textAlign = "left", verticalAlign = 
   
   if (verticalAlign === "middle") {
     foreignObject.attr('y', -divHeight / 2)
+  }
+  else if (verticalAlign === "bottom") {
+    foreignObject.attr('y', -divHeight)
   }
   
   foreignObject.attr("height", divHeight);
@@ -124,8 +127,15 @@ const visObject = {
               {"test2": "test2"}
             ]
         },
-        size_measure: {
+        color_measure_value_format: {
             order: 3,
+            label: 'Color Measure Value Format',
+            type: 'string',
+            display: 'text',
+            default: ""
+        },
+        size_measure: {
+            order: 4,
             label: 'Size Measure',
             type: 'string',
             display: 'select',
@@ -134,7 +144,14 @@ const visObject = {
               {"test": "test"},
               {"test2": "test2"}
             ]
-        }
+        },
+        size_measure_value_format: {
+            order: 5,
+            label: 'Color Measure Value Format',
+            type: 'string',
+            display: 'text',
+            default: ""
+        },
      },
     
     /**
@@ -150,7 +167,6 @@ const visObject = {
      * the data and should update the visualization with the new data.
      **/
       updateAsync: function(data, element, config, queryResponse, details, doneRendering){
-        console.log(data, queryResponse)
         
         this.clearErrors();
         if (!handleErrors(this, queryResponse, {
@@ -185,18 +201,30 @@ const visObject = {
         }
         
         this.trigger('registerOptions', this.options)
+        
 
         const getConfigValue = (configName) => {
-          const value = (config && config[configName] != undefined) ? config[configName] : this.options[configName]['default'];
-          return value
+          const options = this.options[configName];
+          if (!config) return options.default
+
+          const currentValue = config[configName];
+          if (options.type == 'string' && options.display == 'select') {
+            const newValue =  measures.includes(currentValue) ? currentValue : options.default
+            return newValue;
+          }
+
+          const newValue = (currentValue != undefined) ? currentValue : options.default;
+          return newValue
         }
         const configColor = getConfigValue('bubble_color');
         const lightColor = d3.hcl(d3.rgb(configColor));
-        lightColor.l = .95;
+        lightColor.l = 100;
         const configColors = [configColor, lightColor]
         const bubbleColors = d3.interpolateRgbBasis(configColors);
         const size_measure = getConfigValue('size_measure');
         const color_measure = getConfigValue('color_measure');
+        const color_measure_value_format = getConfigValue('color_measure_value_format');
+        const size_measure_value_format = getConfigValue('size_measure_value_format');
 
         // SVG
         const margin = { y: 10, x: 10};
@@ -216,7 +244,7 @@ const visObject = {
           .attr('gradientTransform', "rotate(90)")
 
           const colorCount = configColors.length - 1;
-          configColors.reverse().forEach((color, i) => {
+          configColors.forEach((color, i) => {
             vizGradient.append('stop')
               .attr('offset', `${100 * (i / colorCount)}%`)
               .attr('stop-color', `${color}`)
@@ -323,9 +351,14 @@ const visObject = {
         
         
         // ****************** legend section ***************************
+        const labelWidth = 150;
         const legend_bar_width = 30;
         const legend_bar_height = element.clientHeight *.75;
-        const legendX = (element.clientWidth ) - (legend_bar_width );
+
+        const nodeBBox = gNode.node().getBBox();
+        const minX = nodeBBox.x + nodeBBox.width;
+        
+        const legendX = minX + labelWidth;
         const legendY = (element.clientHeight - legend_bar_height + 20) / 2;
 
         const colorLegend = vizNode.append("g")
@@ -338,10 +371,9 @@ const visObject = {
           // .style('stroke', "black")
           .style('fill', "url(#vizGradient)")
 
-        colorLegend.append("text")
-          .text(fields[color_measure].label_short)
-          .style('text-anchor', "middle")
-          .attr('y', -20)
+        colorLegend.append('g')
+          .call(addTextBox, labelWidth, fields[color_measure].label_short, "center", "bottom")
+          .attr("transform", "translate(0,-20)")
         
         colorLegend.append("path")
           .attr('d', 
@@ -358,13 +390,13 @@ const visObject = {
           .attr('stroke', "black")
           .attr('stroke-width', 2)
 
-        const colorMeasureFormat = fields[color_measure].value_format;
+        const colorMeasureFormat = color_measure_value_format != "" ? color_measure_value_format : fields[color_measure].value_format;
         
         for (let i = 0; i < 5; i++) {
           const pipValue = color_measure_min + ((color_measure_range / 4) * i);
 
           colorLegend.append("text")
-          .text(colorMeasureFormat != null ? d3.format(formatType(colorMeasureFormat))(pipValue) : pipValue) 
+          .text(colorMeasureFormat != null ? formatType(colorMeasureFormat)(pipValue) : pipValue) 
           .attr('x', -3 - legend_bar_width/2)
           .attr('y', legend_bar_height - ((legend_bar_height / 4) * i))
           .style('text-anchor', "end")
@@ -374,7 +406,7 @@ const visObject = {
 
         const sizeLegend = vizNode.append('g')
           .attr('transform', `translate(${legendX}, ${element.clientHeight})`)
-          .call(addTextBox, 200, `<b>Size:</b> <br> ${fields[size_measure].label_short}`, "center", "middle")
+          .call(addTextBox, labelWidth, `<b>Size:</b> <br> ${fields[size_measure].label_short}`, "center", "middle")
 
         // ****************** viz viewbox section ***************************
 
