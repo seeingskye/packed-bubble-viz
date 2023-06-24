@@ -317,7 +317,7 @@ const visObject = {
             if (color_measure_range === 0) {  // If all values are the same
                 row.color = bubbleColors(.5)
             } else {
-                row.color = bubbleColors((row[color_measure].value - color_measure_min) / color_measure_range)
+                row.color = bubbleColors(1- ((row[color_measure].value - color_measure_min) / color_measure_range))
             }
         })
 
