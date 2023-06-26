@@ -426,12 +426,12 @@ const visObject = {
           .attr('y', legend_bar_height - ((legend_bar_height / 4) * i))
           .style('text-anchor', "end")
           .style('dominant-baseline', "middle")
-          .style('font-size', ".8em")
+          .style('font-size', ".9em")
         }
 
         const sizeLegend = vizNode.append('g')
-          .attr('transform', `translate(${legendX}, ${element.clientHeight})`)
-          .call(addTextBox, labelWidth, `<b>Size:</b> <br> ${fields[size_measure].label_short}`, "center", "middle")
+          .attr('transform', `translate(${legendX}, ${legend_bar_height + legendY + 20})`)
+          .call(addTextBox, labelWidth, `<b>Size:</b> <br> ${fields[size_measure].label_short}`, "center", "top")
 
         // ****************** viz viewbox section ***************************
 
