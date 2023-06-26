@@ -59,39 +59,41 @@ function formatType(valueFormat) {
   return d3.format(format)
 }
         
-const addTextBox = (selection, width, text, textAlign = "left", verticalAlign = "top") => {
+const addTextBox = (selection, maxWidth, text, textAlign = "left", verticalAlign = "top", maxHeight = null) => {
   // Set initial max bounding width for foreignObject
   const foreignObject = selection.append('foreignObject')
-  foreignObject.attr("width", width);
+  foreignObject.attr("width", maxWidth);
   let div = foreignObject.append('xhtml:div')
   let span = div.append('xhtml:span')
     .style('display', "inline-block")
-  span.html(text)
+    .html(text)
   let {width: divWidth, height: divHeight} = span.node().getBoundingClientRect();
+
+  // Convert coordinate system if viewPort is different
   const ctm = foreignObject.node().getCTM().inverse();
+  const objWidth = divWidth * ctm.a;
+  const objHeight = (maxHeight && divHeight > maxHeight ? maxHeight : divHeight) * ctm.d;
   
-  divWidth = divWidth * ctm.a;
-  divHeight = divHeight * ctm.d;
   // Set foreignObject to new minimum width
   foreignObject
-    .attr("width", divWidth);
+    .attr("width", objWidth);
   
 
   if (textAlign === "center") {
     div.style('text-align', "center");
-    foreignObject.attr('x', -divWidth /2);
+    foreignObject.attr('x', -objWidth /2);
   }
   
   if (verticalAlign === "middle") {
-    foreignObject.attr('y', -divHeight / 2)
+    foreignObject.attr('y', -objHeight / 2)
   }
   else if (verticalAlign === "bottom") {
-    foreignObject.attr('y', -divHeight)
+    foreignObject.attr('y', -objHeight)
   }
   
-  foreignObject.attr("height", divHeight);
+  foreignObject.attr("height", objHeight);
 
-  return {width: divWidth, height: divHeight};
+  return {width: objWidth, height: objHeight};
 }
 
 const formatFields = (responseObj) => {
@@ -168,7 +170,6 @@ const visObject = {
      * the data and should update the visualization with the new data.
      **/
       updateAsync: function(data, element, config, queryResponse, details, doneRendering){
-        console.log(data, queryResponse);
         
         this.clearErrors();
         if (!handleErrors(this, queryResponse, {
@@ -312,18 +313,7 @@ const visObject = {
         }
      
         // ****************** nodes section ***************************
-        const color_measure_values = data.map(row => row[color_measure].value);
-        const color_measure_min = Math.min(...color_measure_values);
-        const color_measure_max = Math.max(...color_measure_values);
-        const color_measure_range = color_measure_max - color_measure_min;
 
-        data.forEach((row) => {
-            if (color_measure_range === 0) {  // If all values are the same
-                row.color = bubbleColors(.5)
-            } else {
-                row.color = bubbleColors(1- ((row[color_measure].value - color_measure_min) / color_measure_range))
-            }
-        })
 
         let root = {children: data}; 
         const flat_node_heirarchy = d3.hierarchy(root)
@@ -334,24 +324,54 @@ const visObject = {
             .size([element.clientWidth, element.clientHeight])
             .padding(3)
         const packed_data = pack(flat_node_heirarchy);
+        const leaves = packed_data.leaves();
+
+        // Prep supplementary attributes for data
+        const color_measure_values = leaves.map(leaf => leaf.data[color_measure].value);
+        const color_measure_min = Math.min(...color_measure_values);
+        const color_measure_max = Math.max(...color_measure_values);
+        const color_measure_range = color_measure_max - color_measure_min;
+
+        const radius_values = leaves.map(leaf => leaf.r);
+        const radius_max = Math.max(...radius_values);
+        
+
+        leaves.forEach((leaf) => {
+          const colorValue = leaf.data[color_measure].value;
+          if (color_measure_range === 0) {  // If all values are the same
+              leaf.color = bubbleColors(.5)
+          } else {
+              leaf.color = bubbleColors(1- ((colorValue - color_measure_min) / color_measure_range))
+          }
+
+          leaf.fontSize = leaf.r / radius_max;
+        })
+
+        console.log(packed_data.leaves())
 
         const node = gNode.selectAll("g")
           .data(packed_data.leaves());
        
         const node_enter = node.enter().append('g')
             .attr('transform', (d) => `translate(${d.x}, ${d.y})`)
+            .style('font-size', (d) => `${d.fontSize}em`)
+            .style('hyphens', "auto")
+            .style('overflow-wrap', "anywhere")
+            .style('text-overflow', "ellipsis")
             .on('mouseover', mouseOverTooltip)
             .on('mousemove', mouseMoveTooltip)
             .on('mouseout', mouseOutTooltip);
         
             node_enter.append("circle")
             .attr('r', d => d.r)
-            .attr('fill', d => d.data.color)
+            .attr('fill', d => d.color)
 
             node_enter.each(function(d) {
               const width = d.r * 2;
               const text = LookerCharts.Utils.htmlForCell(d.data[dimension_name]);
-              d3.select(this).call(addTextBox, width, text, "center", "middle");
+              const nodeEnter = d3.select(this);
+              nodeEnter.call(addTextBox, width, text, "center", "middle", width);
+              nodeEnter.attr('clip-path', `circle(${d.r}px)`);
             })
         
         
