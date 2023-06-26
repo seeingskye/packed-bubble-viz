@@ -114,6 +114,7 @@ const visObject = {
             label: 'Bubble Gradient',
             type: 'array',
             display: 'color',
+            display_size: 'half',
             default: ["#963CBD"]
         },
         color_measure: {
@@ -167,6 +168,7 @@ const visObject = {
      * the data and should update the visualization with the new data.
      **/
       updateAsync: function(data, element, config, queryResponse, details, doneRendering){
+        console.log(data, queryResponse);
         
         this.clearErrors();
         if (!handleErrors(this, queryResponse, {
@@ -209,7 +211,9 @@ const visObject = {
 
           const currentValue = config[configName];
           if (options.type == 'string' && options.display == 'select') {
-            const newValue =  measures.includes(currentValue) ? currentValue : options.default
+            const newValue =  measures.includes(currentValue) ? currentValue : options.default;
+            vis.trigger("updateConfig", [{configName: newValue}]);
+
             return newValue;
           }
 
