@@ -212,7 +212,7 @@ const visObject = {
           const currentValue = config[configName];
           if (options.type == 'string' && options.display == 'select') {
             const newValue =  measures.includes(currentValue) ? currentValue : options.default;
-            vis.trigger("updateConfig", [{configName: newValue}]);
+            this.trigger("updateConfig", [{configName: newValue}]);
 
             return newValue;
           }
