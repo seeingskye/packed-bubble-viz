@@ -344,10 +344,10 @@ const visObject = {
               leaf.color = bubbleColors(1- ((colorValue - color_measure_min) / color_measure_range))
           }
 
-          leaf.fontSize = leaf.r / radius_max;
+          const fontSizeScalar = .5;
+          leaf.fontSize = 1 - ((radius_max - leaf.r) * fontSizeScalar / radius_max);
         })
 
-        console.log(packed_data.leaves())
 
         const node = gNode.selectAll("g")
           .data(packed_data.leaves());
