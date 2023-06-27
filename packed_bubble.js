@@ -223,6 +223,7 @@ const visObject = {
         const measureOptions = measures.map((measure) => Object.fromEntries([[`${fields[measure].label_short}`, `${measure}`]]));
 
         this.options.color_measure = {
+          section: "Series",
           order: 2,
           label: 'Color Measure',
           type: 'string',
@@ -231,7 +232,8 @@ const visObject = {
           values: measureOptions
         }
         this.options.size_measure = {
-          order: 3,
+          section: "Series",
+          order: 4,
           label: 'Size Measure',
           type: 'string',
           display: 'select',
