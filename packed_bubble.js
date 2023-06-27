@@ -30,34 +30,6 @@ const handleErrors = (vis, res, options) => {
     && check('mes-req', 'Measure', measures.length, options.min_measures, options.max_measures))
 }
 
-function formatType(valueFormat) {
-  if (typeof valueFormat != "string") {
-    return function (x) {return x}
-  }
-  let format = ""
-  switch (valueFormat.charAt(0)) {
-    case '$':
-      format += '$'; break
-    case '£':
-      format += '£'; break
-    case '€':
-      format += '€'; break
-  }
-  if (valueFormat.indexOf(',') > -1) {
-    format += ','
-  }
-  splitValueFormat = valueFormat.split(".")
-  format += '.'
-  if (splitValueFormat.at(-1).at(-1) == "%") {
-    format += splitValueFormat.at(-1).length - 1;
-    format += '%';
-  } else {
-    format += splitValueFormat.at(-1).length;
-    format += 'f';
-  }
-  
-  return d3.format(format)
-}
         
 const addTextBox = (selection, maxWidth, text, textAlign = "left", verticalAlign = "top", maxHeight = null) => {
   // Set initial max bounding width for foreignObject
@@ -105,6 +77,41 @@ const formatFields = (responseObj) => {
 
   return fields
 }
+
+
+function formatType(valueFormat) {
+  if (typeof valueFormat != "string") {
+    return function (x) {return x}
+  }
+  let format = ""
+  switch (valueFormat.charAt(0)) {
+    case '$':
+      format += '$'; break
+    case '£':
+      format += '£'; break
+    case '€':
+      format += '€'; break
+  }
+  if (valueFormat.indexOf(',') > -1) {
+    format += ','
+  }
+  splitValueFormat = valueFormat.split(".")
+  format += '.'
+  if (splitValueFormat.at(-1).at(-1) == "%") {
+    format += splitValueFormat.at(-1).length - 1;
+    format += '%';
+  } else {
+    format += splitValueFormat.at(-1).length;
+    format += 'f';
+  }
+  
+  return d3.format(format)
+}
+
+const formatField = (value, defaultFormat, configFormat = "") => {
+  const format = configFormat != "" ? configFormat : defaultFormat;
+  return formatType(format)(value);
+}
   
 const visObject = {
     /**
@@ -112,48 +119,77 @@ const visObject = {
      **/
      options: {
         bubble_color: {
-            order: 1,
-            label: 'Bubble Gradient',
-            type: 'array',
-            display: 'color',
-            display_size: 'half',
-            default: ["#963CBD"]
+          section: "Chart",
+          order: 1,
+          label: 'Bubble: Gradient Color',
+          type: 'array',
+          display: 'color',
+          display_size: 'half',
+          default: ["#963CBD"]
+        },
+        bubble_max_font_size: {
+          section: "Chart",
+          order: 2,
+          label: 'Bubble: Max Font Size',
+          type: 'number',
+          display: 'number',
+          default: 16
+        },
+        legend_font_size: {
+          section: "Chart",
+          order: 3,
+          label: 'Legends: Font Size',
+          type: 'number',
+          display: 'number',
+          default: 16
+        },
+        color_legend_value_format: {
+          section: "Chart",
+          order: 4,
+          label: 'Color Legend: Value Format',
+          type: 'string',
+          display: 'text',
+          default: ""
         },
         color_measure: {
-            order: 2,
-            label: 'Color Measure',
-            type: 'string',
-            display: 'select',
-            default: "test",
-            values: [
-              {"test": "test"},
-              {"test2": "test2"}
-            ]
+          section: "Series",
+          order: 1,
+          label: 'Color Measure',
+          type: 'string',
+          display: 'select',
+          default: "test",
+          values: [
+            {"test": "test"},
+            {"test2": "test2"}
+          ]
         },
         color_measure_value_format: {
-            order: 3,
-            label: 'Color Measure Value Format',
-            type: 'string',
-            display: 'text',
-            default: ""
+          section: "Series",
+          order: 2,
+          label: 'Color Measure: Value Format',
+          type: 'string',
+          display: 'text',
+          default: ""
         },
         size_measure: {
-            order: 4,
-            label: 'Size Measure',
-            type: 'string',
-            display: 'select',
-            default: "test",
-            values: [
-              {"test": "test"},
-              {"test2": "test2"}
-            ]
+          section: "Series",
+          order: 3,
+          label: 'Size Measure',
+          type: 'string',
+          display: 'select',
+          default: "test",
+          values: [
+            {"test": "test"},
+            {"test2": "test2"}
+          ]
         },
         size_measure_value_format: {
-            order: 5,
-            label: 'Color Measure Value Format',
-            type: 'string',
-            display: 'text',
-            default: ""
+          section: "Series",
+          order: 4,
+          label: 'Size Measure: Value Format',
+          type: 'string',
+          display: 'text',
+          default: ""
         },
      },
     
@@ -227,6 +263,9 @@ const visObject = {
         lightColor.c = 5;
         const configColors = [configColor, lightColor]
         const bubbleColors = d3.interpolateRgbBasis(configColors);
+        const bubble_max_font_size = getConfigValue('bubble_max_font_size');
+        const legend_font_size = getConfigValue('legend_font_size');
+        const color_legend_value_format = getConfigValue('color_legend_value_format');
         const size_measure = getConfigValue('size_measure');
         const color_measure = getConfigValue('color_measure');
         const color_measure_value_format = getConfigValue('color_measure_value_format');
@@ -242,7 +281,10 @@ const visObject = {
           .style('font-family', "Open Sans, Helvetica, Arial, sans-serif")
   
         const vizNode = svg.append('g');
-        const gNode = vizNode.append("g");
+        const gNode = vizNode.append("g")
+            .style("font-size", `${bubble_max_font_size}px`);
+        const gLegend = vizNode.append("g")
+            .style("font-size", `${legend_font_size}px`);
         const defs = svg.append("defs");
 
         const vizGradient = defs.append("linearGradient")
@@ -283,9 +325,9 @@ const visObject = {
             .selectAll('foreignObject').remove();
           const text = `<legend>${LookerCharts.Utils.textForCell(d.data[dimension_name])}</legend>
             <dl><dt style="font-size:.9em">${fields[color_measure].label_short}<b></b></dt>
-            <dd><b>${LookerCharts.Utils.textForCell(d.data[color_measure])}</b></dd>
+            <dd><b>${formatField(d.data[color_measure].value, fields[color_measure].value_format, color_measure_value_format)}</b></dd>
             <dt style="font-size:.9em">${fields[size_measure].label_short}</dt>
-            <dd><b>${LookerCharts.Utils.textForCell(d.data[size_measure])}</b></dd></dl>`;
+            <dd><b>${formatField(d.data[size_measure].value, fields[size_measure].value_format, size_measure_value_format)}</b></dd></dl>`;
           const {width: width, height: height} = addTextBox(tooltip, 300, text, "left", "top");
 
           tooltip.select('rect')
@@ -386,7 +428,7 @@ const visObject = {
         const legendX = minX + labelWidth;
         const legendY = (element.clientHeight - legend_bar_height + 20) / 2;
 
-        const colorLegend = vizNode.append("g")
+        const colorLegend = gLegend.append("g")
           .attr('transform', `translate(${legendX}, ${legendY})`)
         
         colorLegend.append("rect")
@@ -414,14 +456,12 @@ const visObject = {
             l${legend_bar_width},0`)
           .attr('stroke', "black")
           .attr('stroke-width', 2)
-
-        const colorMeasureFormat = color_measure_value_format != "" ? color_measure_value_format : fields[color_measure].value_format;
-        
+     
         for (let i = 0; i < 5; i++) {
           const pipValue = color_measure_min + ((color_measure_range / 4) * i);
 
           colorLegend.append("text")
-          .text(colorMeasureFormat != null ? formatType(colorMeasureFormat)(pipValue) : pipValue) 
+          .text(formatField(pipValue, fields[color_measure].value_format, color_legend_value_format)) 
           .attr('x', -3 - legend_bar_width/2)
           .attr('y', legend_bar_height - ((legend_bar_height / 4) * i))
           .style('text-anchor', "end")
@@ -429,7 +469,7 @@ const visObject = {
           .style('font-size', ".9em")
         }
 
-        const sizeLegend = vizNode.append('g')
+        const sizeLegend = gLegend.append('g')
           .attr('transform', `translate(${legendX}, ${legend_bar_height + legendY + 20})`)
           .call(addTextBox, labelWidth, `<b>Size:</b> <br> ${fields[size_measure].label_short}`, "center", "top")
 
