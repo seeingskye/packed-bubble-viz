@@ -206,6 +206,7 @@ const visObject = {
      * the data and should update the visualization with the new data.
      **/
       updateAsync: function(data, element, config, queryResponse, details, doneRendering){
+        this.trigger("loadingStart");
         
         this.clearErrors();
         if (!handleErrors(this, queryResponse, {
@@ -490,6 +491,7 @@ const visObject = {
            .attr('viewBox', `${viewBox.x}, ${viewBox.y}, ${viewBox.width}, ${viewBox.height}`)
            .attr('preserveAspectRatio', "xMidYMid meet")
 
+           this.trigger("loadingEnd");
            doneRendering();
        }
    };
