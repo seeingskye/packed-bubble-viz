@@ -415,7 +415,7 @@ const visObject = {
               const text = LookerCharts.Utils.htmlForCell(d.data[dimension_name]);
               const nodeEnter = d3.select(this);
               nodeEnter.call(addTextBox, width, text, "center", "middle", width);
-              nodeEnter.attr('clip-path', `circle(${d.r}px)`);
+              // nodeEnter.attr('clip-path', `circle(${d.r}px)`);
             })
         
         
