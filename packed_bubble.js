@@ -410,14 +410,17 @@ const visObject = {
             node_enter.append("circle")
             .attr('r', d => d.r)
             .attr('fill', d => d.color)
+            
 
             node_enter.each(function(d) {
               const width = d.r * 2;
               const text = LookerCharts.Utils.htmlForCell(d.data[dimension_name]);
               const nodeEnter = d3.select(this);
               nodeEnter.call(addTextBox, width, text, "center", "middle", width);
-              nodeEnter.style('clip-path', `circle(${d.r}px)`);
             })
+
+            node_enter.select("foreignObject")
+              .style('clip-path', d => `circle(${d.r}px)`);
         
         
         // ****************** legend section ***************************
