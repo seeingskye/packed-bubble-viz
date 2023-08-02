@@ -419,7 +419,7 @@ const visObject = {
               nodeEnter.call(addTextBox, width, text, "center", "middle", width);
             })
 
-            node_enter.select("foreignObject")
+            node_enter
               .style('clip-path', d => `circle(${d.r}px)`);
         
         
