@@ -63,8 +63,7 @@ const addTextBox = (selection, maxWidth, text, textAlign = "left", verticalAlign
     foreignObject.attr('y', -objHeight)
   }
   
-  foreignObject.attr("height", objHeight)
-    .style('clip-path', `circle(${maxWidth/2}px)`);
+  foreignObject.attr("height", objHeight);
 
   return {width: objWidth, height: objHeight};
 }
@@ -418,6 +417,8 @@ const visObject = {
               const text = LookerCharts.Utils.htmlForCell(d.data[dimension_name]);
               const nodeEnter = d3.select(this);
               nodeEnter.call(addTextBox, width, text, "center", "middle", width);
+              nodeEnter.select("foreignObject")
+                .attr('clip-path', `circle(${d.r}px)`)
             })
 
         
