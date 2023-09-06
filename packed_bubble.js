@@ -63,7 +63,8 @@ const addTextBox = (selection, maxWidth, text, textAlign = "left", verticalAlign
     foreignObject.attr('y', -objHeight)
   }
   
-  foreignObject.attr("height", objHeight);
+  foreignObject.attr("height", objHeight)
+    .style('clip-path', `circle(${maxWidth/2}px)`);
 
   return {width: objWidth, height: objHeight};
 }
@@ -398,7 +399,6 @@ const visObject = {
           .data(packed_data.leaves());
        
         const node_enter = node.enter().append('g')
-            .style('clip-path', d => `circle(${d.r}px)`)
             .attr('transform', (d) => `translate(${d.x}, ${d.y})`)
             .style('font-size', (d) => `${d.fontSize}em`)
             .style('hyphens', "auto")
