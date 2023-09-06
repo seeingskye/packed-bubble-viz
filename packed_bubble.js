@@ -398,6 +398,7 @@ const visObject = {
           .data(packed_data.leaves());
        
         const node_enter = node.enter().append('g')
+            .style('clip-path', d => `circle(${d.r}px)`)
             .attr('transform', (d) => `translate(${d.x}, ${d.y})`)
             .style('font-size', (d) => `${d.fontSize}em`)
             .style('hyphens', "auto")
@@ -419,8 +420,6 @@ const visObject = {
               nodeEnter.call(addTextBox, width, text, "center", "middle", width);
             })
 
-            node_enter
-              .style('clip-path', d => `circle(${d.r}px)`);
         
         
         // ****************** legend section ***************************
