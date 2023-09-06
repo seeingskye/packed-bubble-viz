@@ -410,17 +410,23 @@ const visObject = {
             node_enter.append("circle")
             .attr('r', d => d.r)
             .attr('fill', d => d.color)
-            
 
-            node_enter.each(function(d) {
-              const width = d.r * 2;
-              const text = LookerCharts.Utils.htmlForCell(d.data[dimension_name]);
-              const nodeEnter = d3.select(this);
-              nodeEnter.call(addTextBox, width, text, "center", "middle", width);
+          // browser detection to avoid bug in clip-path display for firefox browser
+          let firefoxAgent = navigator.userAgent.indexOf("Firefox") > -1;
+          node_enter.each(function(d) {
+            const width = d.r * 2;
+            const text = LookerCharts.Utils.htmlForCell(d.data[dimension_name]);
+            const nodeEnter = d3.select(this);
+            nodeEnter.call(addTextBox, width, text, "center", "middle", width);
+            if (!firefoxAgent) {
               nodeEnter.select("foreignObject")
                 .attr('clip-path', `circle(${d.r}px)`)
-            })
+            }
+          })
 
+        if (firefoxAgent) {
+          nodeEnter.attr('clip-path', (d) => `circle(${d.r}px)`)
+        }
         
         
         // ****************** legend section ***************************
