@@ -425,7 +425,7 @@ const visObject = {
           })
 
         if (firefoxAgent) {
-          nodeEnter.attr('clip-path', (d) => `circle(${d.r}px)`)
+          node_enter.attr('clip-path', (d) => `circle(${d.r}px)`)
         }
         
         
