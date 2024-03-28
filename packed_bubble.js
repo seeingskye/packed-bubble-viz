@@ -252,8 +252,9 @@ const visObject = {
           const currentValue = config[configName];
           if (options.type == 'string' && options.display == 'select') {
             const newValue =  measures.includes(currentValue) ? currentValue : options.default;
-            this.trigger("updateConfig", [{configName: newValue}]);
-
+            if (currentValue != newValue ) {  // fix to prevent looping updateConfig calls w/ latest Looker update
+              this.trigger("updateConfig", [{configName: newValue}]);
+            }
             return newValue;
           }
 
