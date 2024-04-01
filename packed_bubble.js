@@ -151,18 +151,6 @@ const visObject = {
           display: 'text',
           default: ""
         },
-        color_measure: {
-          section: "Series",
-          order: 1,
-          label: 'Color Measure',
-          type: 'string',
-          display: 'select',
-          default: "test",
-          values: [
-            {"test": "test"},
-            {"test2": "test2"}
-          ]
-        },
         color_measure_value_format: {
           section: "Series",
           order: 2,
@@ -170,18 +158,6 @@ const visObject = {
           type: 'string',
           display: 'text',
           default: ""
-        },
-        size_measure: {
-          section: "Series",
-          order: 3,
-          label: 'Size Measure',
-          type: 'string',
-          display: 'select',
-          default: "test",
-          values: [
-            {"test": "test"},
-            {"test2": "test2"}
-          ]
         },
         size_measure_value_format: {
           section: "Series",
@@ -242,7 +218,7 @@ const visObject = {
           values: measureOptions
         }
         
-        //this.trigger('registerOptions', this.options)
+        // this.trigger('registerOptions', this.options)
         
 
         const getConfigValue = (configName) => {
@@ -253,7 +229,7 @@ const visObject = {
           if (options.type == 'string' && options.display == 'select') {
             const newValue =  measures.includes(currentValue) ? currentValue : options.default;
             if (currentValue != newValue ) {  // fix to prevent looping updateConfig calls w/ latest Looker update
-              this.trigger("updateConfig", [{configName: newValue}]);
+              // this.trigger("updateConfig", [{configName: newValue}]);
             }
             return newValue;
           }
