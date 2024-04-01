@@ -242,7 +242,7 @@ const visObject = {
           values: measureOptions
         }
         
-        this.trigger('registerOptions', this.options)
+        //this.trigger('registerOptions', this.options)
         
 
         const getConfigValue = (configName) => {
